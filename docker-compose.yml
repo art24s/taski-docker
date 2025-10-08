@@ -1,0 +1,38 @@
+version: '3'
+
+volumes:
+  pg_data:
+  static:
+
+services:
+  db:
+    image: postgres:13
+    env_file: .env
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+  
+  backend:
+    build: ./backend/
+    env_file: .env
+    volumes:
+      - static:/backend_static
+  
+  frontend:
+    build: ./frontend/
+    env_file: .env
+    # УБИРАЕМ команду копирования - она выполняется сразу и завершает контейнер
+    # ДОБАВЛЯЕМ команду запуска сервера
+    command: ["npx", "-y", "http-server", "-p", "8000", "/app/build"]
+    ports:
+      - "3000:8000"
+    # Убираем volume для фронтенда - он не нужен для сервера
+    # volumes:
+    #   - static:/frontend_static
+  
+  gateway:
+    build: ./gateway/
+    env_file: .env
+    volumes:
+      - static:/staticfiles
+    ports:
+      - "8000:80"
